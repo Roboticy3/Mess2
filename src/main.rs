@@ -6,9 +6,11 @@ use phf_macros;
 
 use mess::base::*;
 use mess::twgintw::*;
+use graphs::adjacency_matrix::*;
 use terminal_tools::looped_key_menu;
 
 pub mod mess;
+pub mod graphs;
 pub mod terminal_tools;
 pub mod collection_traits;
 
@@ -26,8 +28,6 @@ const SELECT_GAME_MESSAGE:&str =
 "
 Select Game:
 \t(T)he Worst Game In The World
-
-
 ";
 
 fn select_game() -> Mess<i32> {

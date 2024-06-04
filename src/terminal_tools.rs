@@ -1,9 +1,10 @@
-use std::io::{self, ErrorKind};
+use std::io;
 use std::io::Error;
+use std::io::ErrorKind;
 
 use phf;
 
-use crate::collection_traits;
+use super::collection_traits;
 
 pub fn key_menu<M: collection_traits::Map<char, V>, V:Clone>(key_map:&M) -> Result<V, Error> {
     let mut buf = String::new();
