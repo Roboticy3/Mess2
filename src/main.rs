@@ -3,7 +3,6 @@ use std::io;
 
 use phf_macros;
 
-use mess::base::*;
 use mess::twgintw::*;
 use terminal_tools::looped_key_menu;
 
@@ -15,11 +14,9 @@ pub mod collection_traits;
 
 fn main() -> io::Result<()> {
 
-    let game:Mess<i32> = select_game();
+    let game = select_game();
 
-    game.play(twgintw_stdio_play, twgintw_stdio_display_state);
-
-    Ok(())
+    return game();
 }
 
 const SELECT_GAME_MESSAGE:&str = 
@@ -28,7 +25,7 @@ Select Game:
 \t(T)he Worst Game In The World
 ";
 
-fn select_game() -> Mess<i32> {
+fn select_game() -> fn() -> io::Result<()> {
     let result = looped_key_menu(SELECT_GAME_MESSAGE.to_string(), &GAME_SELECTION_MAP);
     match result {
         Ok(game) => game,
@@ -36,6 +33,6 @@ fn select_game() -> Mess<i32> {
     }
 }
 
-const GAME_SELECTION_MAP:phf::Map<char, Mess<i32>> = phf_macros::phf_map! {
-    'T' => TWGINTW
+const GAME_SELECTION_MAP:phf::Map<char, fn() -> io::Result<()>> = phf_macros::phf_map! {
+    'T' => twgintw_stdio_round
 };

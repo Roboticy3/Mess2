@@ -1,4 +1,6 @@
 
+use std::io;
+
 use super::base::*;
 
 use super::super::terminal_tools::*;
@@ -31,6 +33,13 @@ pub fn twgintw_stdio_play(options:Vec<i32>) -> Option<i32> {
         Ok(o) => Some(o),
         _ => None
     }
+}
+
+pub fn twgintw_stdio_round() -> io::Result<()> {
+    
+    TWGINTW.play(twgintw_stdio_play, twgintw_stdio_display_state);
+
+    return Ok(());
 }
 
 pub fn twgintw_stdio_display_state(s:i32) {
