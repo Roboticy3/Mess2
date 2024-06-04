@@ -3,7 +3,7 @@ use ndarray::{s, Array2};
 
 use super::graph::*;
 pub struct AdjacencyMatrixGraph<E> {
-    m:Array2<Option<E>>
+    pub m:Array2<Option<E>>
 }
 
 impl<E> Graph<usize, E> for AdjacencyMatrixGraph<E> 
@@ -54,5 +54,12 @@ where E : PartialEq + Clone
             }
             None => false
         }
+    }
+}
+
+impl<E> Clone for AdjacencyMatrixGraph<E>
+where E : Clone {
+    fn clone(&self) -> Self {
+        Self { m: self.m.clone() }
     }
 }
