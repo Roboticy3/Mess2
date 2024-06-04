@@ -1,5 +1,4 @@
-use core::result::Result;
-use std::fmt::Error;
+
 
 pub struct Mess<S : Copy> {
     pub starting_state:S, 

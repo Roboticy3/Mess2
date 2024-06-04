@@ -1,11 +1,7 @@
 
-use std::option;
-
 use ndarray::{s, Array2};
 
 use super::graph::*;
-use super::super::collection_traits;
-
 pub struct AdjacencyMatrixGraph<E> {
     m:Array2<Option<E>>
 }
@@ -14,7 +10,6 @@ impl<E> Graph<usize, E> for AdjacencyMatrixGraph<E>
 where E : PartialEq + Clone
 {
     fn get_neighbors(&self, vertex:usize) -> Option<Vec<usize>> {
-        let size = self.m.shape();
 
         if !(self.has_vertex(vertex)) {
             return None;

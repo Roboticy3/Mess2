@@ -2,8 +2,6 @@ use std::io;
 use std::io::Error;
 use std::io::ErrorKind;
 
-use phf;
-
 use super::collection_traits;
 
 pub fn key_menu<M: collection_traits::Map<char, V>, V:Clone>(key_map:&M) -> Result<V, Error> {
@@ -40,5 +38,5 @@ pub fn looped_key_menu<M: collection_traits::Map<char, V>, V:Clone>(message:Stri
     }
 }
 
-pub const alphabeticOptions:[char; 26] = 
+pub const ALPHABETICOPTIONS:[char; 26] = 
     ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];

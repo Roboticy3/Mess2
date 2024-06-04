@@ -20,8 +20,8 @@ pub fn twgintw_stdio_play(options:Vec<i32>) -> Option<i32> {
     let mut message = "Select Option:\n".to_string();
     let mut k = 0;
     for o in options.iter() {
-        key_map.insert(alphabeticOptions[k].to_ascii_uppercase(), o.clone());
-        message.push_str(format!("\t({}): {:?}\n", alphabeticOptions[k], o.clone()).as_str());
+        key_map.insert(ALPHABETICOPTIONS[k].to_ascii_uppercase(), o.clone());
+        message.push_str(format!("\t({}): {:?}\n", ALPHABETICOPTIONS[k], o.clone()).as_str());
         k += 1;
         if k == 26 {break;}
     }
