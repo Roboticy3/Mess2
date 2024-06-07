@@ -3,7 +3,7 @@ use std::io;
 
 use phf_macros;
 
-use mess::twgintw::*;
+use mess::{hackenbush::hackenbush_stdio_round, twgintw::*};
 use terminal_tools::looped_key_menu;
 
 pub mod mess;
@@ -23,6 +23,7 @@ const SELECT_GAME_MESSAGE:&str =
 "
 Select Game:
 \t(T)he Worst Game In The World
+\t(H)ackenbush
 ";
 
 fn select_game() -> fn() -> io::Result<()> {
@@ -34,5 +35,6 @@ fn select_game() -> fn() -> io::Result<()> {
 }
 
 const GAME_SELECTION_MAP:phf::Map<char, fn() -> io::Result<()>> = phf_macros::phf_map! {
-    'T' => twgintw_stdio_round
+    'T' => twgintw_stdio_round,
+    'H' => hackenbush_stdio_round
 };
