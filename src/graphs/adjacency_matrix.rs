@@ -10,13 +10,17 @@ impl<E> AdjacencyMatrixGraph<E>
 where E : Clone
 {
     fn vertex_in_range(&self, vertex:usize) -> bool {
-        vertex < self.m.len_of(Axis(1))
+       vertex < self.m.len_of(Axis(1))
     }
 
     fn edge_in_range(&self, from:usize, to:usize) -> bool {
         (self.vertex_in_range(from)) && (self.vertex_in_range(to))
     }
 
+    /**
+     * assert that the graph matrix is square 
+     * O(n)
+     */
     fn is_valid(&self) -> bool {
         let s = self.m.shape();
         for i in 0..(s.len() - 1) {
@@ -88,8 +92,8 @@ where E : Clone {
 impl<E> MutableGraph<usize, E> for AdjacencyMatrixGraph<E> 
 where E : PartialEq + Clone
 {
-    fn add_vertex(&mut self, vertex:usize) -> bool {
-        false
+    fn add_vertex(&mut self, _vertex:usize) -> bool {
+        panic!("Not Implemented");
     }
 
     fn add_edge(&mut self, edge:E, from:usize, to:usize) -> bool {
@@ -102,8 +106,8 @@ where E : PartialEq + Clone
         result
     }
 
-    fn remove_vertex(&mut self, vertex:usize) -> bool {
-        false
+    fn remove_vertex(&mut self, _vertex:usize) -> bool {
+        panic!("Not Implemented");
     }
 
     fn remove_edge(&mut self, edge:E, from:usize, to:usize) -> bool {
