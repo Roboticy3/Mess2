@@ -1,9 +1,13 @@
 
 pub trait Graph<V, E> {
-    fn get_neighbors(&self, vertex:V) -> Option<Vec<V>>;
 
     fn has_vertex(&self, vertex:V) -> bool;
     fn has_edge(&self, edge:&E, from:V, to:V) -> bool;
+
+    fn get_neighbors(&self, vertex:V) -> Option<Vec<V>>;
+    fn get_connected(&self, vertex:V) -> Option<Vec<V>>;
+
+    fn is_connected(&self, from:V, to:V) -> bool;
 }
 
 pub trait MutableGraph<V, E> : Graph<V, E> {

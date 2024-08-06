@@ -9,8 +9,12 @@ pub struct AdjacencyMatrixGraph<E> {
 impl<E> AdjacencyMatrixGraph<E>
 where E : Clone
 {
+    fn vertex_count(&self) -> usize {
+        return self.m.len_of(Axis(1));
+    }
+
     fn vertex_in_range(&self, vertex:usize) -> bool {
-       vertex < self.m.len_of(Axis(1))
+       vertex < self.vertex_count()
     }
 
     fn edge_in_range(&self, from:usize, to:usize) -> bool {
@@ -79,6 +83,24 @@ where E : PartialEq + Clone
             }
             None => false
         }
+    }
+
+    /**
+     * Use Dijkstra's algorithm to compute the component of a vertex
+     */
+    fn get_connected(&self, vertex:usize) -> Option<Vec<usize>>  {
+        if !(self.vertex_in_range(vertex)) {
+           return None;
+        }
+
+        let mut result = vec![vertex];
+        result.reserve(self.vertex_count());
+        
+        Some(result)
+    }
+
+    fn is_connected(&self, from:usize, to:usize) -> bool {
+        panic!("Not Implemented");
     }
 }
 
