@@ -46,10 +46,6 @@ pub fn random_hackenbush(size:usize, on_ground:usize, seed:u64) -> Option<Hacken
         None => {return None;}
     };
 
-    for i in 0..size {
-        graph.get_connected(i);
-    }
-
     Some(HackenbushState {
         graph:graph, ground:ground
     })

@@ -114,8 +114,6 @@ where E : PartialEq + Clone
                 None => {break;}
             };
 
-            println!("getting neighbors of {}", u);
-
             let neighbors = self.get_neighbors(u)?;
             for i in 0..neighbors.len() {
                 let w = neighbors[i];
@@ -124,8 +122,6 @@ where E : PartialEq + Clone
                 result[w] = true;
             }
         }
-
-        println!("component of {}: {:?}", vertex, &result);
 
         Some(self.vertex_mask_to_vertex_list(result))
     }
