@@ -17,6 +17,16 @@ where E : Clone
        vertex < self.vertex_count()
     }
 
+    fn vertex_mask_to_vertex_list(&self, mask:Vec<bool>) ->  Vec<usize> {
+        let size = mask.len();
+        let mut list = Vec::with_capacity(size);
+        for i in 0..size {
+            if mask[i] { list.push(i) }
+        }
+
+        list
+    }
+
     fn edge_in_range(&self, from:usize, to:usize) -> bool {
         (self.vertex_in_range(from)) && (self.vertex_in_range(to))
     }
@@ -60,7 +70,7 @@ where E : PartialEq + Clone
             }
         }
 
-        return Some(result);
+        Some(result)
     }
 
     fn has_vertex(&self, vertex:usize) -> bool {
@@ -93,10 +103,31 @@ where E : PartialEq + Clone
            return None;
         }
 
-        let mut result = vec![vertex];
-        result.reserve(self.vertex_count());
-        
-        Some(result)
+        let size = self.vertex_count();
+        let mut result:Vec<bool> = vec![false; size];
+        let mut stack = Vec::with_capacity(size);
+        stack.push(vertex);
+
+        loop {
+            let u = match stack.pop() {
+                Some(vertex) => vertex,
+                None => {break;}
+            };
+
+            println!("getting neighbors of {}", u);
+
+            let neighbors = self.get_neighbors(u)?;
+            for i in 0..neighbors.len() {
+                let w = neighbors[i];
+
+                if !result[w] {stack.push(w);}
+                result[w] = true;
+            }
+        }
+
+        println!("component of {}: {:?}", vertex, &result);
+
+        Some(self.vertex_mask_to_vertex_list(result))
     }
 
     fn is_connected(&self, from:usize, to:usize) -> bool {

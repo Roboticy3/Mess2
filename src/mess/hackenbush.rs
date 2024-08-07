@@ -46,6 +46,10 @@ pub fn random_hackenbush(size:usize, on_ground:usize, seed:u64) -> Option<Hacken
         None => {return None;}
     };
 
+    for i in 0..size {
+        graph.get_connected(i);
+    }
+
     Some(HackenbushState {
         graph:graph, ground:ground
     })
@@ -74,6 +78,8 @@ fn random_ground(size:usize, on_ground:usize, seed:u64) -> Option<Vec<bool>> {
     Some(ground)
 }
 
+const GROUND_START_DEGREE:usize = 3;
+const NGROUND_START_DEGREE:usize = 2;
 fn random_starting_graph(size:usize, ground:&Vec<bool>, seed:u64) -> Option<AdjacencyMatrixGraph<Color>> {
     let mut m = AdjacencyMatrixGraph {
         m:Array::from_elem((size, size), None)
@@ -85,8 +91,8 @@ fn random_starting_graph(size:usize, ground:&Vec<bool>, seed:u64) -> Option<Adja
         let is_ground = ground[i];
 
         let cap = match is_ground {
-            true => rng.gen_range(0..7),
-            false => rng.gen_range(0..4)
+            true => rng.gen_range(1..GROUND_START_DEGREE),
+            false => rng.gen_range(1..NGROUND_START_DEGREE)
         };
 
         for _ in 0..cap {
