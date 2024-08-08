@@ -9,7 +9,7 @@ pub struct AdjacencyMatrixGraph<E> {
 impl<E> AdjacencyMatrixGraph<E>
 where E : Clone
 {
-    fn vertex_count(&self) -> usize {
+    pub fn vertex_count(&self) -> usize {
         return self.m.len_of(Axis(1));
     }
 
@@ -49,30 +49,6 @@ where E : Clone
 impl<E> Graph<usize, E> for AdjacencyMatrixGraph<E> 
 where E : PartialEq + Clone
 {
-    fn get_neighbors(&self, vertex:usize) -> Option<Vec<usize>> {
-
-        if !(self.vertex_in_range(vertex)) {
-            return None;
-        }
-
-        let mut result:Vec<usize> = vec![];
-
-        let row = self.m.slice(s![vertex, ..]);
-        for i in 0..row.len() {
-            match self.m.get((vertex, i)) {
-                Some(maybe_edge) => {
-                    match maybe_edge {
-                        Some(_edge) => { result.push(i); },
-                        None => { continue; }
-                    }
-                },
-                None => { continue; }
-            }
-        }
-
-        Some(result)
-    }
-
     fn has_vertex(&self, vertex:usize) -> bool {
         self.vertex_in_range(vertex)
     }
@@ -94,17 +70,57 @@ where E : PartialEq + Clone
             None => false
         }
     }
+    
+    fn get_neighbors(&self, vertex:usize) -> Vec<usize> {
+        self.vertex_mask_to_vertex_list(
+            self.get_neighbors_mask(vertex)
+        )
+    }
+    
+    fn get_connected(&self, vertex:usize) -> Vec<usize> {
+        self.vertex_mask_to_vertex_list(
+            self.get_connected_mask(vertex)
+        )
+    }
 
-    /**
-     * Use Dijkstra's algorithm to compute the component of a vertex
-     */
-    fn get_connected(&self, vertex:usize) -> Option<Vec<usize>>  {
+    fn is_connected(&self, from:usize, to:usize) -> bool {
+        panic!("Not Implemented");
+    }
+}
+
+impl<E> MaskGraph<E> for AdjacencyMatrixGraph<E> 
+where E : PartialEq + Clone {
+    fn get_neighbors_mask(&self, vertex:usize) -> Vec<bool> {
+        let size = self.vertex_count();
+        let mut mask = vec![false; size];
+
         if !(self.vertex_in_range(vertex)) {
-           return None;
+            return mask;
         }
 
+        for i in 0..size {
+            match self.m.get((vertex, i)) {
+                Some(maybe_edge) => {
+                    match maybe_edge {
+                        Some(_edge) => { mask[i] = true; },
+                        None => { continue; }
+                    }
+                },
+                None => { continue; }
+            }
+        }
+
+        mask
+    }
+
+    fn get_connected_mask(&self, vertex:usize) -> Vec<bool>  {
         let size = self.vertex_count();
-        let mut result:Vec<bool> = vec![false; size];
+        let mut mask:Vec<bool> = vec![false; size];
+        
+        if !(self.vertex_in_range(vertex)) {
+           return mask;
+        }
+
         let mut stack = Vec::with_capacity(size);
         stack.push(vertex);
 
@@ -114,20 +130,16 @@ where E : PartialEq + Clone
                 None => {break;}
             };
 
-            let neighbors = self.get_neighbors(u)?;
-            for i in 0..neighbors.len() {
-                let w = neighbors[i];
+            let neighbors = self.get_neighbors_mask(u);
+            for i in 0..size {
+                if !neighbors[i] {continue;}
 
-                if !result[w] {stack.push(w);}
-                result[w] = true;
+                if !mask[i] {stack.push(i);}
+                mask[i] = true;
             }
         }
 
-        Some(self.vertex_mask_to_vertex_list(result))
-    }
-
-    fn is_connected(&self, from:usize, to:usize) -> bool {
-        panic!("Not Implemented");
+       mask
     }
 }
 

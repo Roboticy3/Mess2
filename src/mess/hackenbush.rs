@@ -17,6 +17,9 @@ use super::super::graphs::adjacency_matrix::*;
 use super::super::graphs::graph::*;
 use super::base::*;
 
+type HackenbushGraph = AdjacencyMatrixGraph<Color>;
+type Hackenbush = Mess<HackenbushState>;
+
 pub fn hackenbush_stdio_round() -> io::Result<()> {
     let mut rng = rand::thread_rng();
     let starting_state_option = random_hackenbush(10, 4, rng.next_u64());
@@ -26,15 +29,38 @@ pub fn hackenbush_stdio_round() -> io::Result<()> {
         Some(s) => s
     };
 
+    hackenbush_option(starting_state);
+
     Ok(())
 }
 
-pub struct HackenbushState<G: Graph<usize, Color> + Clone> {
-    graph:G,
+pub struct HackenbushState {
+    graph:HackenbushGraph,
     ground:Vec<bool>
 }
 
-pub fn random_hackenbush(size:usize, on_ground:usize, seed:u64) -> Option<HackenbushState<AdjacencyMatrixGraph<Color>>> {
+pub fn hackenbush_option(s:HackenbushState) -> Vec<HackenbushState> {
+    
+    let graph = s.graph;
+    let size = graph.vertex_count();
+    let ground = s.ground;
+    let mut grounded_components:Vec<Vec<bool>> = Vec::new();
+
+    for i in 0..size {
+        let g = ground[i];
+        if g {
+            grounded_components.push(graph.get_connected_mask(i));
+        }
+    }
+
+    println!("{:?}", grounded_components);
+
+    Vec::new()
+
+    
+}
+
+pub fn random_hackenbush(size:usize, on_ground:usize, seed:u64) -> Option<HackenbushState> {
     
     let ground = match random_ground(size, on_ground, seed) {
         Some(g) => g,
@@ -75,8 +101,8 @@ fn random_ground(size:usize, on_ground:usize, seed:u64) -> Option<Vec<bool>> {
 }
 
 const GROUND_START_DEGREE:usize = 3;
-const NGROUND_START_DEGREE:usize = 2;
-fn random_starting_graph(size:usize, ground:&Vec<bool>, seed:u64) -> Option<AdjacencyMatrixGraph<Color>> {
+const NGROUND_START_DEGREE:usize = 4;
+fn random_starting_graph(size:usize, ground:&Vec<bool>, seed:u64) -> Option<HackenbushGraph> {
     let mut m = AdjacencyMatrixGraph {
         m:Array::from_elem((size, size), None)
     };
@@ -91,11 +117,12 @@ fn random_starting_graph(size:usize, ground:&Vec<bool>, seed:u64) -> Option<Adja
             false => rng.gen_range(1..NGROUND_START_DEGREE)
         };
 
-        for _ in 0..cap {
+        for _ in 0..(rng.gen_range(1..2)) {
             let mut neighbor = rng.gen_range(0..size);
-            if is_ground || neighbor == i { loop {
-                if !ground[neighbor] && neighbor != i {break;}
+            if neighbor == i { loop {
                 neighbor = rng.gen_range(0..size);
+                if is_ground && ground[neighbor] {continue;}
+                if neighbor != i {break;}
             }}
 
             let color = match rng.gen_range(0..2) {
