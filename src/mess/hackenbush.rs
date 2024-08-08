@@ -20,16 +20,29 @@ use super::base::*;
 type HackenbushGraph = AdjacencyMatrixGraph<Color>;
 type Hackenbush = Mess<HackenbushState>;
 
+const NODE_COUNT:usize = 15;
+const GROUND_COUNT:usize = 3;
+
 pub fn hackenbush_stdio_round() -> io::Result<()> {
     let mut rng = rand::thread_rng();
-    let starting_state_option = random_hackenbush(10, 4, rng.next_u64());
+    let size = NODE_COUNT;
+    let starting_state_option = random_hackenbush(NODE_COUNT, GROUND_COUNT, rng.next_u64());
 
-    let starting_state = match starting_state_option {
+    let mut starting_state = match starting_state_option {
         None => {return Err(io::Error::new(ErrorKind::Other, "failed to produce starting state"));},
         Some(s) => s
     };
-
-    hackenbush_option(starting_state);
+    
+    {
+        println!("untrimmed state:");
+        println!("{:?}", starting_state.graph.expose());
+    }
+    
+    {
+        trim_hackenbush(&mut starting_state);
+        println!("trimmed state:");
+        println!("{:?}", starting_state.graph.expose());
+    }
 
     Ok(())
 }
@@ -39,25 +52,44 @@ pub struct HackenbushState {
     ground:Vec<bool>
 }
 
-pub fn hackenbush_option(s:HackenbushState) -> Vec<HackenbushState> {
+pub fn trim_hackenbush(s:&mut HackenbushState) -> Vec<HackenbushState> {
     
-    let graph = s.graph;
+    let mut graph = &mut s.graph;
     let size = graph.vertex_count();
-    let ground = s.ground;
-    let mut grounded_components:Vec<Vec<bool>> = Vec::new();
+    let ground = &s.ground;
+    let mut grounded_component = vec![false; size];
 
+    //get all vertices connected to the ground
     for i in 0..size {
         let g = ground[i];
         if g {
-            grounded_components.push(graph.get_connected_mask(i));
+            let mask = graph.get_connected_mask(i);
+            join_masks(&mut grounded_component, &mask);
         }
     }
+    
+    println!("reachable vertices: {:?}", grounded_component);
 
-    println!("{:?}", grounded_components);
+    //remove all edges of vertices not connected to the ground
+    for i in 0..size {
+        if grounded_component[i] { continue; }
+    
+        let neighbors = graph.get_neighbors(i);
+        for j in neighbors {
+            println!("removing edge {} -> {}", i, j);
+            graph.disconnect(i, j);
+        }
+    }
 
     Vec::new()
 
     
+}
+
+fn join_masks(a:&mut Vec<bool>, b:&Vec<bool>) {
+    for i in 0..a.len() {
+        a[i] = a[i] || b[i];
+    }
 }
 
 pub fn random_hackenbush(size:usize, on_ground:usize, seed:u64) -> Option<HackenbushState> {
@@ -86,13 +118,13 @@ fn random_ground(size:usize, on_ground:usize, seed:u64) -> Option<Vec<bool>> {
     let mut on_ground_count:usize = 0;
 
     loop {
+        if on_ground_count >= on_ground {break;}
+    
         let i = rng.gen_range(0..size);
         if ground[i] {continue;}
 
         ground[i] = true;
         on_ground_count += 1;
-
-        if on_ground_count >= on_ground {break;}
     }
 
     println!("generated ground: {:?}", ground);
@@ -100,8 +132,8 @@ fn random_ground(size:usize, on_ground:usize, seed:u64) -> Option<Vec<bool>> {
     Some(ground)
 }
 
-const GROUND_START_DEGREE:usize = 3;
-const NGROUND_START_DEGREE:usize = 4;
+const GROUND_START_DEGREE:usize = 2;
+const NGROUND_START_DEGREE:usize = 3;
 fn random_starting_graph(size:usize, ground:&Vec<bool>, seed:u64) -> Option<HackenbushGraph> {
     let mut m = AdjacencyMatrixGraph {
         m:Array::from_elem((size, size), None)
@@ -117,7 +149,7 @@ fn random_starting_graph(size:usize, ground:&Vec<bool>, seed:u64) -> Option<Hack
             false => rng.gen_range(1..NGROUND_START_DEGREE)
         };
 
-        for _ in 0..(rng.gen_range(1..2)) {
+        for _ in 0..1 {
             let mut neighbor = rng.gen_range(0..size);
             if neighbor == i { loop {
                 neighbor = rng.gen_range(0..size);
@@ -133,11 +165,6 @@ fn random_starting_graph(size:usize, ground:&Vec<bool>, seed:u64) -> Option<Hack
             m.add_edge(color.clone(), i, neighbor);
             m.add_edge(color, neighbor, i);
         }
-    }
-
-    println!("generated graph:");
-    for i in 0..size {
-        println!("{}: {:?}", i, m.get_neighbors(i));
     }
 
     Some(m)

@@ -7,7 +7,9 @@ pub trait Graph<V, E> {
     fn get_neighbors(&self, vertex:V) -> Vec<V>;
     fn get_connected(&self, vertex:V) -> Vec<V>;
 
-    fn is_connected(&self, from:V, to:V) -> bool;
+    fn get_direct_edges(&self, vertex:V) -> Vec<&E>;
+
+    fn get_path(&self, from:V, to:V) -> Option<Vec<&E>>;
 }
 
 pub trait MutableGraph<V, E> : Graph<V, E> {

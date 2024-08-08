@@ -44,6 +44,15 @@ where E : Clone
         }
         return true;
     }
+
+    pub fn disconnect(&mut self, from:usize, to:usize) {
+        self.m.slice_mut(s![from, to]).fill(None); 
+        self.m.slice_mut(s![to, from]).fill(None); 
+    }
+    
+    pub fn expose(&self) -> &Array2<Option<E>> {
+        &self.m
+    }
 }
 
 impl<E> Graph<usize, E> for AdjacencyMatrixGraph<E> 
@@ -83,7 +92,31 @@ where E : PartialEq + Clone
         )
     }
 
-    fn is_connected(&self, from:usize, to:usize) -> bool {
+    fn get_direct_edges(&self, vertex:usize) -> Vec<&E> {
+
+        if !(self.vertex_in_range(vertex)) {
+            return Vec::new();
+        }
+        
+        let size = self.vertex_count();   
+        let mut result = Vec::with_capacity(size);
+
+        for i in 0..size {
+            match self.m.get((vertex, i)) {
+                Some(maybe_edge) => {
+                    match maybe_edge {
+                        Some(edge) => { result.push(edge) },
+                        None => { continue; }
+                    }
+                },
+                None => { continue; }
+            }
+        }
+
+        result     
+    }
+
+    fn get_path(&self, from:usize, to:usize) -> Option<Vec<&E>> {
         panic!("Not Implemented");
     }
 }
@@ -102,7 +135,9 @@ where E : PartialEq + Clone {
             match self.m.get((vertex, i)) {
                 Some(maybe_edge) => {
                     match maybe_edge {
-                        Some(_edge) => { mask[i] = true; },
+                        Some(_edge) => { 
+                            mask[i] = true; 
+                        },
                         None => { continue; }
                     }
                 },
@@ -175,8 +210,8 @@ where E : PartialEq + Clone
         if !self.edge_in_range(from, to) {return false;}
 
         let result = self.has_edge(&edge, from, to);
-
-        self.m.slice_mut(s![from, to]).fill(None);
+        
+        self.disconnect(from, to);
 
         result
     }
