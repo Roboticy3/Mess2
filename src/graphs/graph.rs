@@ -23,3 +23,8 @@ pub trait MaskGraph<E> : Graph<usize, E> {
     fn get_neighbors_mask(&self, vertex:usize) -> Vec<bool>;
     fn get_connected_mask(&self, vertex:usize) -> Vec<bool>;
 }
+
+pub trait SearchableGraph<V, E> : Graph<V, E> {
+    fn get_edges<F: Fn(&E, V, V) -> bool>(&self, filter:F) -> Vec<(&E, V, V)>;
+    fn get_vertices<F: Fn(V) -> bool>(&self, filter:F) -> Vec<V>;
+}

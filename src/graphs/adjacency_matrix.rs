@@ -216,3 +216,37 @@ where E : PartialEq + Clone
         result
     }
 }
+
+impl<E> SearchableGraph<usize, E> for AdjacencyMatrixGraph<E> 
+where E: PartialEq + Clone
+{
+    fn get_vertices<F: Fn(usize) -> bool>(&self, filter:F) -> Vec<usize> {
+        let size = self.vertex_count();
+        let mut result = Vec::with_capacity(size);
+        
+        for i in 0..size {
+            if filter(i) { result.push(i); }
+        }
+
+        result
+    }
+
+    fn get_edges<F: Fn(&E, usize, usize) -> bool>(&self, filter:F) -> Vec<(&E, usize, usize)> {
+        let size = self.vertex_count();
+        let mut result = Vec::new();
+
+        for i in 0..size {
+            for j in 0..size {
+                match self.m.get((i, j)) {
+                    Some(maybe_edge) => match maybe_edge {
+                        Some(edge) => {if filter(edge, i, j) {result.push((edge, i, j))}}
+                        None => {}
+                    }
+                    None => {}
+                }
+            }
+        }
+
+        result
+    }
+}   
