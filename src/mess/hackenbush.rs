@@ -13,6 +13,7 @@ use colored::Color;
 use ndarray::array;
 use ndarray::Array;
 
+use super::super::terminal_tools::*;
 use super::super::graphs::adjacency_matrix::*;
 use super::super::graphs::graph::*;
 use super::base::*;
@@ -22,6 +23,34 @@ type Hackenbush = Mess<HackenbushState>;
 
 const NODE_COUNT:usize = 15;
 const GROUND_COUNT:usize = 3;
+const COLORS:[Color; 2] = [Color::Red, Color::Blue];
+const fn get_turn_color(turn:usize) -> Color {
+    COLORS[turn % COLORS.len()]
+}
+
+pub fn hackenbush_stdio_display_state(state:HackenbushState) {
+    let turn = get_turn_color(state.turn);
+    let raw_graph = state.graph.expose();
+    println!("{:?}'s turn:\n {:?}", turn, raw_graph);
+}
+
+pub fn hackenbush_stdio_play(options:Vec<HackenbushState>) -> Option<HackenbushState> {
+    let mut key_map = std::collections::HashMap::new();
+    let mut message = "Select Option:\n".to_string();
+    let mut k = 0;
+    for o in options.iter() {
+        key_map.insert(ALPHABETICOPTIONS[k].to_ascii_uppercase(), o.clone());
+        message.push_str(format!("\t({}): {}\n", ALPHABETICOPTIONS[k], o.name).as_str());
+        k += 1;
+        if k == 26 {break;}
+    }
+
+    let result = looped_key_menu(message, &key_map);
+    match result {
+        Ok(o) => Some(o),
+        _ => None
+    }
+}
 
 pub fn hackenbush_stdio_round() -> io::Result<()> {
     let mut rng = rand::thread_rng();
@@ -33,6 +62,7 @@ pub fn hackenbush_stdio_round() -> io::Result<()> {
         Some(s) => s
     };
     
+    /*
     {
         println!("untrimmed state:");
         println!("{:?}", starting_state.graph.expose());
@@ -43,16 +73,35 @@ pub fn hackenbush_stdio_round() -> io::Result<()> {
         println!("trimmed state:");
         println!("{:?}", starting_state.graph.expose());
     }
+    */
+
+    let game = Mess {
+        starting_state:starting_state, option:hackenbush_option
+    };
+    game.play(hackenbush_stdio_play, hackenbush_stdio_display_state);
 
     Ok(())
 }
 
 pub struct HackenbushState {
     graph:HackenbushGraph,
-    ground:Vec<bool>
+    ground:Vec<bool>,
+    turn:usize,
+    name:String
 }
 
-pub fn trim_hackenbush(s:&mut HackenbushState) -> Vec<HackenbushState> {
+impl Clone for HackenbushState {
+    fn clone(&self) -> HackenbushState {
+        HackenbushState {
+            graph:self.graph.clone(),
+            ground:self.ground.clone(),
+            turn:self.turn.clone(),
+            name:self.name.clone()
+        }
+    }
+}
+
+pub fn trim_hackenbush(s:&mut HackenbushState) -> () {
     
     let mut graph = &mut s.graph;
     let size = graph.vertex_count();
@@ -68,7 +117,7 @@ pub fn trim_hackenbush(s:&mut HackenbushState) -> Vec<HackenbushState> {
         }
     }
     
-    println!("reachable vertices: {:?}", grounded_component);
+    //println!("reachable vertices: {:?}", grounded_component);
 
     //remove all edges of vertices not connected to the ground
     for i in 0..size {
@@ -76,14 +125,36 @@ pub fn trim_hackenbush(s:&mut HackenbushState) -> Vec<HackenbushState> {
     
         let neighbors = graph.get_neighbors(i);
         for j in neighbors {
-            println!("removing edge {} -> {}", i, j);
+            //println!("removing edge {} -> {}", i, j);
             graph.disconnect(i, j);
+            
         }
     }
+}
 
-    Vec::new()
-
+pub fn hackenbush_option(s: HackenbushState) -> Vec<HackenbushState> {
+    //get the current color that can be cut on this turn
+    let turn = s.turn;
     
+    //from the color, get the current edges that can be cut
+    let edges_data = s.graph.get_edges(|edge, _from, _to| {
+        edge.clone() == get_turn_color(turn)
+    });
+
+    //clone the original state for each edge of the current turn color, then remove the edge from
+    //its corresponding clone
+    let mut result = vec![s.clone(); edges_data.len()];
+    for i in 0..edges_data.len() {
+        let (e, f, t) = edges_data[i];
+        //remove the edge from this copy and trim the result
+        result[i].graph.remove_edge(e, f, t);    
+        trim_hackenbush(&mut result[i]);
+        //set name so the state displays in a single line, as an action on the current state
+        result[i].name = format!("remove edge {} -> {}", f, t);
+        //increment turn
+        result[i].turn = result[i].turn + 1;
+    }
+    result
 }
 
 fn join_masks(a:&mut Vec<bool>, b:&Vec<bool>) {
@@ -105,7 +176,7 @@ pub fn random_hackenbush(size:usize, on_ground:usize, seed:u64) -> Option<Hacken
     };
 
     Some(HackenbushState {
-        graph:graph, ground:ground
+        graph:graph, ground:ground, turn:0, name:"Initial State".to_string()
     })
 }
 
@@ -127,7 +198,7 @@ fn random_ground(size:usize, on_ground:usize, seed:u64) -> Option<Vec<bool>> {
         on_ground_count += 1;
     }
 
-    println!("generated ground: {:?}", ground);
+    //println!("generated ground: {:?}", ground);
 
     Some(ground)
 }
@@ -157,12 +228,9 @@ fn random_starting_graph(size:usize, ground:&Vec<bool>, seed:u64) -> Option<Hack
                 if neighbor != i {break;}
             }}
 
-            let color = match rng.gen_range(0..2) {
-                0 => Color::Blue,
-                _ => Color::Red
-            };
+            let color = &COLORS[rng.gen_range(0..2)];
 
-            m.add_edge(color.clone(), i, neighbor);
+            m.add_edge(color, i, neighbor);
             m.add_edge(color, neighbor, i);
         }
     }

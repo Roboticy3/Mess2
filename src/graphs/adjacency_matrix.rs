@@ -192,26 +192,26 @@ where E : PartialEq + Clone
         panic!("Not Implemented");
     }
 
-    fn add_edge(&mut self, edge:E, from:usize, to:usize) -> bool {
+    fn add_edge(&mut self, edge:&E, from:usize, to:usize) -> bool {
         if !self.edge_in_range(from, to) {return false;}
 
-        let result = self.has_edge(&edge, from, to);
+        let result = self.has_edge(edge, from, to);
 
-        self.m.slice_mut(s![from, to]).fill(Some(edge));
+        if !result {self.m.slice_mut(s![from, to]).fill(Some(edge.clone())); }
 
-        result
+        !result
     }
 
     fn remove_vertex(&mut self, _vertex:usize) -> bool {
         panic!("Not Implemented");
     }
 
-    fn remove_edge(&mut self, edge:E, from:usize, to:usize) -> bool {
+    fn remove_edge(&mut self, edge:&E, from:usize, to:usize) -> bool {
         if !self.edge_in_range(from, to) {return false;}
 
-        let result = self.has_edge(&edge, from, to);
+        let result = self.has_edge(edge, from, to);
         
-        self.disconnect(from, to);
+        if result { self.disconnect(from, to); }
 
         result
     }

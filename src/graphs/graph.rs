@@ -14,9 +14,9 @@ pub trait Graph<V, E> {
 
 pub trait MutableGraph<V, E> : Graph<V, E> {
     fn add_vertex(&mut self, vertex:V) -> bool;
-    fn add_edge(&mut self, edge:E, from:V, to:V) -> bool;
+    fn add_edge(&mut self, edge:&E, from:V, to:V) -> bool;
     fn remove_vertex(&mut self, vertex:V) -> bool;
-    fn remove_edge(&mut self, edge:E, from:V, to:V) -> bool;
+    fn remove_edge(&mut self, edge:&E, from:V, to:V) -> bool;
 }
 
 pub trait MaskGraph<E> : Graph<usize, E> {
